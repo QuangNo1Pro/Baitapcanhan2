@@ -147,3 +147,32 @@ footer{
     align-items: center;
     border-radius: 5px;
 }
+
+/* Đổi màu cho các phần tử cụ thể trong chế độ dark-mode */
+.dark-mode header {
+  background-color: #270b0b;
+  color: #fff;
+}
+
+.dark-mode nav {
+  background-color: #0b121d;
+}
+.dark-mode .button_search {
+  background-color: #444;
+  color: #fff;
+}
+
+.dark-mode .input_search {
+  background-color: #444;
+  color: #fff;
+}
+
+.dark-mode main {
+  background-color: #444;
+}
+
+.dark-mode footer {
+  background-color: #444;
+  color: #ccc;
+}
+
