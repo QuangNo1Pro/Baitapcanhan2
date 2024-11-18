@@ -439,6 +439,7 @@ p strong {
   justify-content: center;
 }
 
+/* Modal */
 .modal {
   position: fixed;
   top: 0;
@@ -463,19 +464,34 @@ p strong {
   overflow-y: auto;
 }
 
+/* Phim Poster */
 .movie-poster {
   border-radius: 10px;
   margin-bottom: 20px;
+  width: 100%;
+  height: 400px;
+  background-size: cover;
+  background-position: center;
 }
 
+/* Chi tiết phim */
 .movie-details {
   font-family: Arial, sans-serif;
 }
 
 .movie-details h2 {
   margin-bottom: 10px;
+  font-size: 1.6rem;
+  color: #333;
 }
 
+.movie-details p {
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  color: #555;
+}
+
+/* Nút đóng modal */
 .close-btn {
   background: red;
   color: white;
@@ -491,5 +507,39 @@ p strong {
 
 .close-btn:hover {
   background: black;
+}
 
+/* Thông tin diễn viên trong modal */
+.actor-details {
+  font-family: Arial, sans-serif;
+}
+
+.actor-details h2 {
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+}
+
+.actor-details p {
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.actor-poster {
+  border-radius: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+  height: 400px;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Hiển thị thông tin diễn viên */
+.actor-link {
+  color: #1e90ff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.actor-link:hover {
+  text-decoration: underline;
 }
