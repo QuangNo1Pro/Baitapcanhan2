@@ -58,6 +58,15 @@ const Main = {
     };
   },
   methods: {
+    //Xử lí sự kiện Home
+    resetState() {
+      this.currentMovieIndex = 0;
+      this.currentPopularIndex = 0;
+      this.currentRankIndex = 0;
+      this.showModal = false;
+      this.currentMovie = null;
+    },
+
     // Điều hướng cho top5movies_doanhthu
     previousMovie() {
       if (this.currentMovieIndex > 0) {
@@ -252,8 +261,8 @@ const app = Vue.createApp({
     };
   },
   methods: {
-    loadPage() {
-      this.currentPage = 1;
+    goHome() {
+      this.$refs.main.resetState();
     },
     toggleDarkMode(isDarkMode) {
       this.isDarkMode = isDarkMode;
@@ -307,13 +316,12 @@ const app = Vue.createApp({
     }
   },
   mounted() {
-    this.loadPage();
     this.fetchMovies();
   },
   template: `
     <Header @toggle-dark-mode="toggleDarkMode" :isDarkMode="isDarkMode" />
-    <NavBar />
-    <Main 
+    <NavBar @go-home="goHome"/>
+    <Main ref="main"
       :mostPopular="mostPopular"  
       :top5movies_doanhthu="top5movies_doanhthu" 
       :top15_30moviePopular="top15_30moviePopular" 
