@@ -165,12 +165,12 @@ footer {
   margin-top: 30px;
   height: 25px;
   width: 100%;
-  background-color: mediumblue;
+  background-color: rgb(36, 36, 232);
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 5px;
-  border: 1px solid mediumblue;
+  border: 1px solid rgb(36, 36, 232);
 }
 
 /* Đổi màu cho các phần tử cụ thể trong chế độ dark-mode */
@@ -254,9 +254,11 @@ main {
   width: 100%;
   height: 100%;
   flex-direction: column;
+  gap: 30px;
   border: none;
 }
 
+/* Hiển thị các poster dưới dạng lưới */
 .movie-item {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -283,6 +285,7 @@ main {
   background-color: rgba(0, 0, 0, 0.8);
 }
 
+/* Phần nội dung của phim */
 .movie-content {
   display: flex;
   justify-content: center;
@@ -291,12 +294,32 @@ main {
   transition: transform 0.3s ease;
 }
 
+/* Phần CSS cho Top 5 (luôn hiển thị tiêu đề) */
+.movie-poster.top5 .movie-title {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Phần CSS cho Most Popular và Top Rated (hiển thị tiêu đề khi hover) */
+.movie-poster.top15-30 .movie-title {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Hiển thị tiêu đề khi hover vào poster */
+.movie-poster.top15-30:hover .movie-title {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Các hiệu ứng khác như scale và shadow */
 .movie-poster {
   position: relative;
   background-size: cover;
   background-position: center;
-  width: 300px;
-  height: 450px;
+  width: 350px;
+  height: 500px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -307,10 +330,18 @@ main {
   z-index: 1;
 }
 
+/* Hiệu ứng khi hover vào poster */
+.movie-poster:hover {
+  transform: scale(1.2);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
+  z-index: 10;
+}
+
+/* Tiêu đề của phim trong poster */
 .movie-title {
   color: white;
   background: rgba(0, 0, 0, 0.7);
-  margin-top: 95%;
+  margin-bottom: 0px;
   text-align: center;
   font-size: 15px;
   font-weight: bold;
@@ -320,22 +351,6 @@ main {
   bottom: 0;
   opacity: 1;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  transform: translateY(0);
-}
-
-.movie-poster:hover {
-  transform: scale(1.2);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
-  z-index: 10;
-}
-
-.movie-poster.top15-30 .movie-title {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.movie-poster.top15-30:hover .movie-title {
-  opacity: 1;
   transform: translateY(0);
 }
 
@@ -361,6 +376,12 @@ main {
   right: 0;
 }
 
+p strong {
+  font-weight: bold;
+  color: black;
+  font-size: 20px;
+}
+
 /* Hiển thị kết quả tìm kiếm */
 .search-results-wrapper {
   padding: 20px;
@@ -369,102 +390,106 @@ main {
 
 .search-results-grid {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 10px;
-  box-sizing: border-box;
-}
-
-.search-item {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  box-sizing: border-box;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
 }
 
 .movie-poster-card {
   position: relative;
   background-size: cover;
   background-position: center;
-  height: 250px;
-  cursor: pointer;
   border-radius: 10px;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, z-index 0.3s ease;
-  z-index: 1;
-  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-weight: bold;
 }
 
 .movie-title-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
   color: white;
-  background: rgba(0, 0, 0, 0.7);
-  margin-top: auto;
+  padding: 20px;
   text-align: center;
-  font-size: 12px;
   font-weight: bold;
-  padding: 5px;
+  font-size: 18px;
+  border-radius: 10px;
+  height: 30px;
+  margin-bottom: 0px;
+  background-color: rgba(0, 0, 0, 0.7);
   width: 100%;
-  opacity: 1;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  transform: translateY(0);
-  box-sizing: border-box;
+  position: absolute;
+  bottom: 0;
 }
 
-.movie-poster-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-}
-
-.movie-poster-card:hover .movie-title-text {
-  opacity: 1;
+.genre-list {
+  font-size: 16px;
+  margin-top: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal {
   position: fixed;
-  top: 150px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background-color: rgba(8, 68, 114, 0.8);
-  color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 400px;
-  height: 450px;
-  box-sizing: border-box;
-  z-index: 100;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
 .modal-content {
-  text-align: center;
+  background: white;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 90%;
+  padding: 20px;
+  text-align: left;
+  overflow-y: auto;
 }
 
-/* Tiêu đề */
-.modal-content h3 {
-  font-size: 24px;
-  margin-bottom: 15px;
-  text-align: center;
+.movie-poster {
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
 
-/* Các thông tin chi tiết phim */
-.modal-content p {
-  font-size: 16px;
-  margin: 10px 0;
+.movie-details {
+  font-family: Arial, sans-serif;
 }
 
-.modal-content p strong {
-  font-weight: bold;
+.movie-details h2 {
+  margin-bottom: 10px;
 }
 
-/* Nút đóng modal */
-.close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 24px;
+.close-btn {
+  background: red;
   color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
 }
 
-.close:hover {
-  color: red;
+.close-btn:hover {
+  background: black;
+
 }

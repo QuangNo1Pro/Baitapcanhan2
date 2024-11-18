@@ -46,11 +46,16 @@ const NavBar = {
       this.$emit('search-movies', this.searchQuery);
     },
   },
+
+  watch: {
+    searchQuery(newQuery) {
+      this.$emit('update:searchQuery', newQuery);
+    },
+  },
 };
 
-// Main component
 const Main = {
-  props: ["top5movies_doanhthu", "top15_30moviePopular", "top15_30movieRank", "searchResults", "moviesData"],
+  props: ["top5movies_doanhthu", "top15_30moviePopular", "top15_30movieRank", "searchResults", "moviesData", "searchQuery"],
   data() {
     return {
       currentMovieIndex: 0, 
@@ -58,24 +63,19 @@ const Main = {
       currentRankIndex: 0,
       currentMovie: null,
       showModal: false, 
-      searchQuery: '',
     };
   },
   methods: {
-    //Xử lí sự kiện Home
+    // Reset lại trạng thái
     resetState() {
       this.currentMovieIndex = 0;
       this.currentPopularIndex = 0;
       this.currentRankIndex = 0;
       this.showModal = false;
       this.currentMovie = null;
-      this.searchQuery = '';
-      this.isSearching = false;
-      this.searchResults = [];
-      this.fetchMovies();
     },
 
-    // Điều hướng cho top5movies_doanhthu
+    // Điều hướng phim trong top5movies_doanhthu
     previousMovie() {
       if (this.currentMovieIndex > 0) {
         this.currentMovieIndex -= 1;
@@ -86,6 +86,7 @@ const Main = {
         this.currentMovieIndex += 1;
       }
     },
+
     // Điều hướng cho Most Popular Movies
     previousPopular() {
       if (this.currentPopularIndex > 0) {
@@ -108,154 +109,184 @@ const Main = {
       }
     },
 
-    // Hiển thị chi tiết phim từ Top 5 Movies
-  showDetailsTop5(movie) {
-    this.currentMovie = movie; 
-    this.modalType = "top5";  
-    this.showModal = true;     
-  },
-  // Hiển thị chi tiết phim từ Top 15/30 Movies
-  showDetailsTop15_30(movie) {
-    this.currentMovie = movie; 
-    this.modalType = "top15_30";
-    this.showModal = true;     
-  },
-  // Đóng modal
-  closeModal() {
-    this.showModal = false;
-    this.modalType = "";     
+    // Mở modal và lấy thông tin chi tiết của phim
+    openModal(movieId) {
+      this.currentMovie = this.getMovieById(movieId);
+      this.showModal = true;
     },
-  
+
+    // Đóng modal
+    closeModal() {
+      this.showModal = false;
+    },
+
+    // Hàm tìm phim theo ID
+    getMovieById(id) {
+      return this.moviesData.find(movie => movie.id === id);
+    },
+
+    // Lấy tên đạo diễn từ danh sách đạo diễn
+    getDirector(directorList) {
+      return directorList?.map(director => director.name).join(", ");
+    },
+
+    // Lấy tên diễn viên từ danh sách diễn viên
+    getActors(actorList) {
+      return actorList?.map(actor => actor.name).join(", ");
+    },
+
+    // Lấy thể loại phim từ danh sách thể loại
+    getGenres(genreList) {
+      return genreList?.map(genre => genre.value).join(", ");
+    },
   },
   template: `
     <main>
-    <!-- Hiển thị kết quả tìm kiếm -->
+      <!-- Hiển thị kết quả tìm kiếm -->
       <section v-if="searchResults.length > 0">
         <div class="search-results-wrapper">
           <div class="search-results-grid">
-            <!-- Hiển thị mỗi search-item -->
             <div class="search-item" v-for="(movie, index) in searchResults" :key="movie.id">
               <div 
                 class="movie-poster-card" 
-                @click="showDetailsTop5(movie)" 
-                :style="{ backgroundImage: 'url(' + movie.image + ')' }"
+                @click="openModal(movie.id)" 
+                :style="{ backgroundImage: 'url(' + movie.image + ')', height: '500px' }"
               >
-                <h3 class="movie-title-text">{{ movie.title || 'N/A' }}</h3>
+                <h3 class="movie-title-text">
+                  <div>{{ movie.title || 'N/A' }} </div>
+                  <div class="genre-list">
+                    [
+                    <span v-for="(genre, index) in movie.genreList || []" :key="index">
+                      {{ genre.key }}<span v-if="index < movie.genreList.length - 1">, </span>
+                    </span>
+                    ]
+                  </div>
+                </h3>
               </div>
+            </div>
           </div>
         </div>
       </section>
 
-     <section v-else>
-          <!-- Top 5 Movies -->
-          <section >
-            <div class="movie-item">
-              <div class="movie-navigation">
-                <button @click="previousMovie"><</button>
-              </div>
-              <div class="movie-content">
-                <div 
-                  class="movie-poster" 
-                  @click="showDetailsTop5(top5movies_doanhthu[currentMovieIndex])" 
-                  :style="{ backgroundImage: 'url(' + top5movies_doanhthu[currentMovieIndex]?.image + ')' }"
-                >
-                  <h3 class="movie-title">
-                    <br>{{ top5movies_doanhthu[currentMovieIndex]?.fullTitle || 'N/A' }}
-                    <br />
-                    [
-                      <span v-for="(genre, index) in top5movies_doanhthu[currentMovieIndex]?.genreList || []" :key="index">
-                        {{ genre.key }}<span v-if="index < top5movies_doanhthu[currentMovieIndex]?.genreList.length - 1">, </span>
-                      </span>
-                    ]
-                  </h3>
-                </div>
-              </div>
-              <div class="movie-navigation">
-                <button @click="nextMovie">></button>
+      <!-- Nếu không có kết quả tìm kiếm, hiển thị các mục phim -->
+      <section v-else>
+        <!-- Top 5 Movies -->
+        <section>
+          <div class="movie-item" style="margin-bottom : 30px">
+            <div class="movie-navigation">
+              <button @click="previousMovie"><</button>
+            </div>
+            <div class="movie-content">
+              <div 
+                class="movie-poster top5" 
+                @click="openModal(top5movies_doanhthu[currentMovieIndex].id)" 
+                :style="{ backgroundImage: 'url(' + top5movies_doanhthu[currentMovieIndex]?.image + ')' }"
+              >
+                <h3 class="movie-title">
+                  <br>{{ top5movies_doanhthu[currentMovieIndex]?.fullTitle || 'N/A' }}
+                  <br />
+                  [
+                    <span v-for="(genre, index) in top5movies_doanhthu[currentMovieIndex]?.genreList || []" :key="index">
+                      {{ genre.key }}<span v-if="index < top5movies_doanhthu[currentMovieIndex]?.genreList.length - 1">, </span>
+                    </span>
+                  ]
+                </h3>
               </div>
             </div>
-          </section>
+            <div class="movie-navigation">
+              <button @click="nextMovie">></button>
+            </div>
+          </div>
+        </section>
 
-          <!-- Most Popular Movies -->
-          <section>
-            <h2>Most Popular</h2>
-            <div class="movie-item">
-              <div class="movie-navigation">
-                <button @click="previousPopular"><</button>
-              </div>
-              <div class="movie-content">
-                <div v-for="(movie, index) in top15_30moviePopular.slice(currentPopularIndex, currentPopularIndex + 3)" 
-                  :key="index" 
-                  class="movie-poster" 
-                  @click="showDetailsTop15_30(movie)" 
-                  :style="{ backgroundImage: 'url(' + movie.image + ')' }"
-                >
-                  <h3 class="movie-title">
-                    {{ movie.fullTitle || 'N/A' }}
-                  </h3>
-                </div>
-              </div>
-              <div class="movie-navigation">
-                <button @click="nextPopular">></button>
+        <!-- Most Popular Movies -->
+        <section>
+          <h2 style="margin-bottom: 30px;">Most Popular</h2>
+          <div class="movie-item">
+            <div class="movie-navigation">
+              <button @click="previousPopular"><</button>
+            </div>
+            <div class="movie-content">
+              <div 
+                v-for="(movie, index) in top15_30moviePopular.slice(currentPopularIndex, currentPopularIndex + 3)" 
+                :key="index" 
+                class="movie-poster top15-30" 
+                @click="openModal(movie.id)" 
+                :style="{
+                  backgroundImage: 'url(' + movie.image + ')',
+                  height: '250px', 
+                  width: '350px',  
+                }"
+              >
+                <h3 class="movie-title">
+                  {{ movie.fullTitle || 'N/A' }}
+                </h3>
               </div>
             </div>
-          </section>
+            <div class="movie-navigation">
+              <button @click="nextPopular">></button>
+            </div>
+          </div>
+        </section>
 
-          <!-- Top Rated Movies -->
-          <section>
-            <h2>Top Rating</h2>
-            <div class="movie-item">
-              <div class="movie-navigation">
-                <button @click="previousRank"><</button>
-              </div>
-              <div class="movie-content">
-                <div v-for="(movie, index) in top15_30movieRank.slice(currentRankIndex, currentRankIndex + 3)" 
-                  :key="index" 
-                  class="movie-poster" 
-                  @click="showDetailsTop15_30(movie)" 
-                  :style="{ backgroundImage: 'url(' + movie.image + ')' }"
-                >
-                  <h3 class="movie-title">
-                    {{ movie.fullTitle || 'N/A' }}
-                  </h3>
-                </div>
-              </div>
-              <div class="movie-navigation">
-                <button @click="nextRank">></button>
+        <!-- Top Rated Movies -->
+        <section>
+          <h2 style="margin-bottom: 30px;">Top Rating</h2>
+          <div class="movie-item">
+            <div class="movie-navigation">
+              <button @click="previousRank"><</button>
+            </div>
+            <div class="movie-content">
+              <div 
+                v-for="(movie, index) in top15_30movieRank.slice(currentRankIndex, currentRankIndex + 3)" 
+                :key="index" 
+                class="movie-poster top15-30" 
+                @click="openModal(movie.id)" 
+                :style="{
+                  backgroundImage: 'url(' + movie.image + ')',
+                  height: '250px', 
+                  width: '350px', 
+                }"
+              >
+                <h3 class="movie-title">
+                  {{ movie.fullTitle || 'N/A' }}
+                </h3>
               </div>
             </div>
-          </section>
-     </section>
-    
-  <!-- Modal for displaying movie details -->
-  <div v-if="showModal" class="modal">
-    <div class="modal-content">
-      <button class="close-btn" @click="closeModal">X</button>
-      <template v-if="modalType === 'top5'">
-        <!-- Chi tiết Top 5 Movies -->
-          <h2>{{ currentMovie?.fullTitle || 'N/A' }}</h2>
-          <p><strong>Plot:</strong> {{ currentMovie?.plot || 'N/A' }}</p>
-          <p><strong>Director:</strong> {{ currentMovie?.directorList?.map(d => d.name).join(", ") || 'N/A' }}</p>
-          <p><strong>Actors:</strong> {{ currentMovie?.actorList?.map(a => a.name).join(", ") || 'N/A' }}</p>
-          <p><strong>Genres:</strong> {{ currentMovie?.genreList?.map(g => g.value).join(", ") || 'N/A' }}</p>
-          <p><strong>Release Date:</strong> {{ currentMovie?.releaseDate || 'N/A' }}</p>
-          <p><strong>Box Office:</strong> {{ currentMovie?.boxOffice?.cumulativeWorldwideGross || 'N/A' }}</p>
-      </template>
+            <div class="movie-navigation">
+              <button @click="nextRank">></button>
+            </div>
+          </div>
+        </section>
+      </section>
+      
+      <!-- Modal hiển thị thông tin chi tiết phim -->
+      <div v-if="showModal && currentMovie" class="modal">
+        <div class="modal-content">
 
-      <template v-else-if="modalType === 'top15_30'">
-        <!-- Chi tiết Top 15/30 Movies -->
-        <h2>{{ currentMovie?.fullTitle || 'N/A' }}</h2>
-        <p><strong>Rank:</strong> {{ currentMovie?.rank || 'N/A' }}</p>
-        <p><strong>Title:</strong> {{ currentMovie?.title || 'N/A' }} ({{ currentMovie?.year || 'N/A' }})</p>
-        <p><strong>IMDB Rating:</strong> {{ currentMovie?.imDbRating || 'N/A' }} ({{ currentMovie?.imDbRatingCount || 'N/A' }} votes)</p>
-        <p><strong>Crew:</strong> {{ currentMovie?.crew || 'N/A' }}</p>
-      </template>
-    </div>
-  </div>
+          <!-- Poster -->
+          <div class="movie-poster" 
+               :style="{ backgroundImage: 'url(' + currentMovie.image + ')', width: '100%', height: '400px', backgroundSize: 'cover', backgroundPosition: 'center' }">
+          </div>
 
-</main>
-`
+          <!-- Thông tin chi tiết phim -->
+          <div class="movie-details">
+            <h2><strong>Tiêu đề:</strong> {{ currentMovie.title || 'N/A' }}</h2>
+            <p><strong>Năm sản xuất:</strong> {{ currentMovie.year || 'N/A' }}</p>
+            <p><strong>Tóm tắt:</strong> {{ currentMovie.plot || 'Không có thông tin' }}</p>
+
+            <p><strong>Đạo diễn:</strong> {{ getDirector(currentMovie.directorList) || 'Không có thông tin.' }}</p>
+            <p><strong>Diễn viên:</strong> {{ getActors(currentMovie.actorList) || 'Không có thông tin.' }}</p>
+
+            <p><strong>Thể loại:</strong> {{ getGenres(currentMovie.genreList) || 'Không có thông tin.' }}</p>
+          </div>
+        </div>
+        <button class="close-btn" @click="closeModal">X</button>
+      </div>
+    </main>
+  `
 };
+
 
 // Footer component
 const Footer = {
@@ -274,7 +305,6 @@ const app = Vue.createApp({
   },
   data() {
     return {
-      currentPage: 1,
       isDarkMode: false,
 
       moviesData: [],
@@ -285,19 +315,14 @@ const app = Vue.createApp({
       top15_30moviePopular: [],
       top15_30movieRank: [],
 
-      searchQuery: '', // Lưu query tìm kiếm
-      searchResults: [], // Lưu kết quả tìm kiếm
-      isSearching: false, // Trạng thái tìm kiếm
-
-
+      searchQuery: '', 
+      searchResults: [], 
     };
   },
   methods: {
     goHome() {
-        this.isSearching = false; 
         this.searchResults = [];
         this.searchQuery = ''; 
-        this.$refs.navBar.searchQuery = '';
         this.$refs.main.resetState();
     },
     toggleDarkMode(isDarkMode) {
@@ -329,7 +354,7 @@ const app = Vue.createApp({
               movie.boxOffice?.cumulativeWorldwideGross?.replace(/[\$,]/g, "") || 0
             ),
           }))
-        .sort((a, b) => b.numericRevenue - a.numericRevenue) // Sắp xếp theo doanh thu giảm dần
+        .sort((a, b) => a.numericRevenue - b.numericRevenue) // Sắp xếp theo doanh thu giảm dần
         .slice(0, 5); // Lấy 5 phim đầu tiên
 
         this.top15_30moviePopular = this.mostPopular.slice(0, 20);
@@ -337,24 +362,30 @@ const app = Vue.createApp({
         this.top15_30movieRank = this.top50Movies
           .sort((a, b) => a.rank - b.rank)
           .slice(0, 20);
+        
+        console.log("top5: ", this.top5movies_doanhthu);
+        console.log("popular: ", this.top15_30moviePopular);
+        console.log("rate: ", this.top15_30movieRank);
 
       } catch (error) {
         console.error("Lỗi khi fetch dữ liệu:", error);
       }
     },
 
-        // Tìm kiếm trong app component
+        // Tìm kiếm 
     searchMovies(query) {
       const lowerCaseQuery = query.toLowerCase(); // Sử dụng this.searchQuery
 
-      // Lọc phim theo tên hoặc đạo diễn
+      // Lọc phim theo tên 
       this.searchResults = this.moviesData.filter(movie =>
-        movie.title?.toLowerCase().includes(lowerCaseQuery) ||
-        movie.directorList?.some(director => director.name.toLowerCase().includes(lowerCaseQuery))
+        movie.title?.toLowerCase().includes(lowerCaseQuery) 
       );
 
       this.isSearching = true;
-      console.log(this.searchResults); // Debug
+      if (this.searchResults.length === 0)
+      {
+        alert("Không có kết quả tìm kiếm ! ")
+      }
     },
   },
 
@@ -370,7 +401,8 @@ const app = Vue.createApp({
         :top5movies_doanhthu="top5movies_doanhthu" 
         :top15_30moviePopular="top15_30moviePopular" 
         :top15_30movieRank="top15_30movieRank"
-        :searchResults="searchResults"  
+        :searchResults="searchResults"
+        :searchQuery="searchQuery"
       />
     </div>
     <Footer />
