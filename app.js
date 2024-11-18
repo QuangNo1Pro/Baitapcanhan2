@@ -1,3 +1,4 @@
+import { dbProvider } from './dbProvider.js'
 
 // Header component
 const Header = {
@@ -46,121 +47,180 @@ const NavBar = {
 
 // Main component
 const Main = {
-    props: ['top5movies_doanhthu', 'top20moviesPopular', 'top20moviesRank'],
-    template: `
-      <main>
-        <!-- Hiển thị top 5 phim doanh thu cao nhất -->
-        <div class="top-movie">
-          <h2>Top 5 Movie Doanh Thu Cao Nhất</h2>
-          <div v-if="top5movies_doanhthu.length > 0">
-            <div class="movie" v-for="(movie, index) in top5movies_doanhthu" :key="index">
-              <img :src="movie.image" alt="Top Movie" />
-              <div class="movie-details">
-                <h3>{{ movie.title }}</h3>
-                <p><strong>Year:</strong> {{ movie.year }}</p>
-                <p><strong>Rating:</strong> {{ movie.imDbRating }}</p>
-                <p><strong>Rank:</strong> {{ movie.rank }}</p>
-                <p>{{ movie.plot }}</p>
-              </div>
-            </div>
-            <div class="pagination">
-              <button @click="changeTopMovie('prev')" :disabled="currentTopMovieIndex === 0">Previous</button>
-              <button @click="changeTopMovie('next')" :disabled="currentTopMovieIndex === top5movies_doanhthu.length - 1">Next</button>
-            </div>
+  props: ["top5movies_doanhthu", "top15_30moviePopular", "top15_30movieRank"],
+  data() {
+    return {
+      currentMovieIndex: 0, // Chỉ số hiện tại của top 5 doanh thu
+      currentPopularIndex: 0, // Chỉ số hiện tại của Most Popular
+      currentRankIndex: 0, // Chỉ số hiện tại của Top Rating
+      currentMovie: null,
+      showModal: false, // Trạng thái hiển thị modal
+    };
+  },
+  methods: {
+    // Điều hướng cho top5movies_doanhthu
+    previousMovie() {
+      if (this.currentMovieIndex > 0) {
+        this.currentMovieIndex -= 1;
+      }
+    },
+    nextMovie() {
+      if (this.currentMovieIndex < this.top5movies_doanhthu.length - 1) {
+        this.currentMovieIndex += 1;
+      }
+    },
+    // Điều hướng cho Most Popular Movies
+    previousPopular() {
+      if (this.currentPopularIndex > 0) {
+        this.currentPopularIndex -= 3; // Lùi 3 phim
+      }
+    },
+    nextPopular() {
+      if (this.currentPopularIndex < this.top15_30moviePopular.length - 3) {
+        this.currentPopularIndex += 3; // Tiến 3 phim
+      }
+    },
+
+    // Điều hướng cho Top Rated Movies
+    previousRank() {
+      if (this.currentRankIndex > 0) {
+        this.currentRankIndex -= 3; // Lùi 3 phim
+      }
+    },
+    nextRank() {
+      if (this.currentRankIndex < this.top15_30movieRank.length - 3) {
+        this.currentRankIndex += 3; // Tiến 3 phim
+      }
+    },
+
+    // Hiển thị chi tiết phim từ Top 5 Movies
+  showDetailsTop5(movie) {
+    this.currentMovie = movie; // Lưu bộ phim hiện tại
+    this.modalType = "top5";   // Đặt loại modal là "top5"
+    this.showModal = true;     // Hiển thị modal
+  },
+  // Hiển thị chi tiết phim từ Top 15/30 Movies
+  showDetailsTop15_30(movie) {
+    this.currentMovie = movie; // Lưu bộ phim hiện tại
+    this.modalType = "top15_30"; // Đặt loại modal là "top15_30"
+    this.showModal = true;     // Hiển thị modal
+  },
+  // Đóng modal
+  closeModal() {
+    this.showModal = false;
+    this.modalType = "";       // Reset loại modal
+  },
+  },
+  template: `
+    <main>
+    <!-- Top 5 Movies -->
+    <section>
+      <div class="movie-item">
+        <div class="movie-navigation">
+          <button @click="previousMovie"><</button>
+        </div>
+        <div class="movie-content">
+          <div 
+            class="movie-poster" 
+            @click="showDetailsTop5(top5movies_doanhthu[currentMovieIndex])" 
+            :style="{ backgroundImage: 'url(' + top5movies_doanhthu[currentMovieIndex]?.image + ')' }"
+          >
+            <h3 class="movie-title">
+              <br>{{ top5movies_doanhthu[currentMovieIndex]?.fullTitle || 'N/A' }}
+              <br />
+              [
+                <span v-for="(genre, index) in top5movies_doanhthu[currentMovieIndex]?.genreList || []" :key="index">
+                  {{ genre.key }}<span v-if="index < top5movies_doanhthu[currentMovieIndex]?.genreList.length - 1">, </span>
+                </span>
+              ]
+            </h3>
           </div>
         </div>
-  
-        <!-- Hiển thị 20 phim phổ biến nhất -->
-        <div class="popular-movies">
-          <h2>Top 20 Movie Phổ Biến Nhất</h2>
-          <div class="movie-list">
-            <div v-for="(movie, index) in currentPopularMovies" :key="index" class="movie-item">
-              <img :src="movie.image" alt="Popular Movie" />
-              <div class="movie-details">
-                <h3>{{ movie.title }}</h3>
-                <p><strong>Year:</strong> {{ movie.year }}</p>
-                <p><strong>Rating:</strong> {{ movie.imDbRating }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="pagination">
-            <button @click="changePopularMovies('prev')" :disabled="currentPopularMoviesIndex === 0">Previous</button>
-            <button @click="changePopularMovies('next')" :disabled="currentPopularMoviesIndex === totalPopularMoviesPages - 1">Next</button>
+        <div class="movie-navigation">
+          <button @click="nextMovie">></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Most Popular Movies -->
+    <section>
+      <h2>Most Popular</h2>
+      <div class="movie-item">
+        <div class="movie-navigation">
+          <button @click="previousPopular"><</button>
+        </div>
+        <div class="movie-content">
+          <div v-for="(movie, index) in top15_30moviePopular.slice(currentPopularIndex, currentPopularIndex + 3)" 
+            :key="index" 
+            class="movie-poster" 
+            @click="showDetailsTop15_30(movie)" 
+            :style="{ backgroundImage: 'url(' + movie.image + ')' }"
+          >
+            <h3 class="movie-title">
+              {{ movie.fullTitle || 'N/A' }}
+            </h3>
           </div>
         </div>
-  
-        <!-- Hiển thị 20 phim hạng cao nhất -->
-        <div class="ranked-movies">
-          <h2>Top 20 Movie Hạng Cao Nhất</h2>
-          <div class="movie-list">
-            <div v-for="(movie, index) in currentRankMovies" :key="index" class="movie-item">
-              <img :src="movie.image" alt="Ranked Movie" />
-              <div class="movie-details">
-                <h3>{{ movie.title }}</h3>
-                <p><strong>Year:</strong> {{ movie.year }}</p>
-                <p><strong>Rating:</strong> {{ movie.imDbRating }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="pagination">
-            <button @click="changeRankMovies('prev')" :disabled="currentRankMoviesIndex === 0">Previous</button>
-            <button @click="changeRankMovies('next')" :disabled="currentRankMoviesIndex === totalRankMoviesPages - 1">Next</button>
+        <div class="movie-navigation">
+          <button @click="nextPopular">></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top Rated Movies -->
+    <section>
+      <h2>Top Rating</h2>
+      <div class="movie-item">
+        <div class="movie-navigation">
+          <button @click="previousRank"><</button>
+        </div>
+        <div class="movie-content">
+          <div v-for="(movie, index) in top15_30movieRank.slice(currentRankIndex, currentRankIndex + 3)" 
+            :key="index" 
+            class="movie-poster" 
+            @click="showDetailsTop15_30(movie)" 
+            :style="{ backgroundImage: 'url(' + movie.image + ')' }"
+          >
+            <h3 class="movie-title">
+              {{ movie.fullTitle || 'N/A' }}
+            </h3>
           </div>
         </div>
-      </main>
-    `,
-    data() {
-      return {
-        currentTopMovieIndex: 0,
-        currentPopularMoviesIndex: 0,
-        currentRankMoviesIndex: 0,
-        moviesPerPage: 3,
-      };
-    },
-    computed: {
-      currentPopularMovies() {
-        const start = this.currentPopularMoviesIndex * this.moviesPerPage;
-        const end = start + this.moviesPerPage;
-        return this.top20moviesPopular.slice(start, end);
-      },
-      totalPopularMoviesPages() {
-        return Math.ceil(this.top20moviesPopular.length / this.moviesPerPage);
-      },
-      currentRankMovies() {
-        const start = this.currentRankMoviesIndex * this.moviesPerPage;
-        const end = start + this.moviesPerPage;
-        return this.top20moviesRank.slice(start, end);
-      },
-      totalRankMoviesPages() {
-        return Math.ceil(this.top20moviesRank.length / this.moviesPerPage);
-      },
-    },
-    methods: {
-      changeTopMovie(direction) {
-        if (direction === 'prev' && this.currentTopMovieIndex > 0) {
-          this.currentTopMovieIndex--;
-        } else if (direction === 'next' && this.currentTopMovieIndex < this.top5movies_doanhthu.length - 1) {
-          this.currentTopMovieIndex++;
-        }
-      },
-      changePopularMovies(direction) {
-        if (direction === 'prev' && this.currentPopularMoviesIndex > 0) {
-          this.currentPopularMoviesIndex--;
-        } else if (direction === 'next' && this.currentPopularMoviesIndex < this.totalPopularMoviesPages - 1) {
-          this.currentPopularMoviesIndex++;
-        }
-      },
-      changeRankMovies(direction) {
-        if (direction === 'prev' && this.currentRankMoviesIndex > 0) {
-          this.currentRankMoviesIndex--;
-        } else if (direction === 'next' && this.currentRankMoviesIndex < this.totalRankMoviesPages - 1) {
-          this.currentRankMoviesIndex++;
-        }
-      },
-    },
-  };
-  
-  
+        <div class="movie-navigation">
+          <button @click="nextRank">></button>
+        </div>
+      </div>
+    </section>
+
+  <!-- Modal for displaying movie details -->
+  <div v-if="showModal" class="modal">
+    <div class="modal-content">
+      <button class="close-btn" @click="closeModal">X</button>
+      <template v-if="modalType === 'top5'">
+        <!-- Chi tiết Top 5 Movies -->
+          <h2>{{ currentMovie?.fullTitle || 'N/A' }}</h2>
+          <p><strong>Plot:</strong> {{ currentMovie?.plot || 'N/A' }}</p>
+          <p><strong>Director:</strong> {{ currentMovie?.directorList?.map(d => d.name).join(", ") || 'N/A' }}</p>
+          <p><strong>Actors:</strong> {{ currentMovie?.actorList?.map(a => a.name).join(", ") || 'N/A' }}</p>
+          <p><strong>Genres:</strong> {{ currentMovie?.genreList?.map(g => g.value).join(", ") || 'N/A' }}</p>
+          <p><strong>Release Date:</strong> {{ currentMovie?.releaseDate || 'N/A' }}</p>
+          <p><strong>Box Office:</strong> {{ currentMovie?.boxOffice?.cumulativeWorldwideGross || 'N/A' }}</p>
+      </template>
+
+      <template v-else-if="modalType === 'top15_30'">
+        <!-- Chi tiết Top 15/30 Movies -->
+        <h2>{{ currentMovie?.fullTitle || 'N/A' }}</h2>
+        <p><strong>Rank:</strong> {{ currentMovie?.rank || 'N/A' }}</p>
+        <p><strong>Title:</strong> {{ currentMovie?.title || 'N/A' }} ({{ currentMovie?.year || 'N/A' }})</p>
+        <p><strong>IMDB Rating:</strong> {{ currentMovie?.imDbRating || 'N/A' }} ({{ currentMovie?.imDbRatingCount || 'N/A' }} votes)</p>
+        <p><strong>Crew:</strong> {{ currentMovie?.crew || 'N/A' }}</p>
+      </template>
+    </div>
+  </div>
+
+</main>
+`
+};
 
 // Footer component
 const Footer = {
@@ -171,139 +231,97 @@ const Footer = {
 
 // Vue app
 const app = Vue.createApp({
-    components: {
-        Header,
-        NavBar,
-        Main,
-        Footer,
-    },
-    data() {
-        return {
-        currentPage: 1,
-        isDarkMode: false,
-        
-        moviesData:[], // Danh sách các movie sau khi gộp các thuộc tính
-        
-        top5movies_doanhthu : [],
-        top15_30moviePopular:[],
-        top15_30movieRank:[],
+  components: {
+    Header,
+    NavBar,
+    Main,
+    Footer,
+  },
+  data() {
+    return {
+      currentPage: 1,
+      isDarkMode: false,
 
-        };
+      moviesData: [],
+      mostPopular: [],
+      top50Movies: [],
+
+      top5movies_doanhthu: [],
+      top15_30moviePopular: [],
+      top15_30movieRank: [],
+    };
+  },
+  methods: {
+    loadPage() {
+      this.currentPage = 1;
     },
-    methods: {
-        loadPage() {
-        this.currentPage = 1;
-        },
-        toggleDarkMode(isDarkMode) {
-        this.isDarkMode = isDarkMode;
-        const body = document.body;
-        if (isDarkMode) {
-            body.classList.add("dark-mode");
-        } else {
-            body.classList.remove("dark-mode");
-        }
-        },
-        async fetchMovies() {
-            const urls = {
-            movies: "http://matuan.online:2422/api/Movies",
-            names: "http://matuan.online:2422/api/Names",
-            reviews: "http://matuan.online:2422/api/Reviews",
-            top50: "http://matuan.online:2422/api/Top50Movies",
-            mostPopular: "http://matuan.online:2422/api/MostPopularMovies",
-            };
+    toggleDarkMode(isDarkMode) {
+      this.isDarkMode = isDarkMode;
+      const body = document.body;
+      if (isDarkMode) {
+        body.classList.add("dark-mode");
+      } else {
+        body.classList.remove("dark-mode");
+      }
+    },
+    async fetchMovies() {
+      try {
+        // Sử dụng dbProvider để gọi API
+        const response = await dbProvider.fetch('get/Movies');
+        const response3 = await dbProvider.fetch('get/Top50Movies');
+        const response4 = await dbProvider.fetch('get/MostPopularMovies');
+
+        // Gán dữ liệu từ API vào các biến
+        this.moviesData = response.items || [];
+        this.top50Movies = response3.items || [];
+        this.mostPopular = response4.items || [];
+
+        console.log("Movie", this.moviesData);
+        console.log("top50", this.top50Movies);
+        console.log("Popular", this.mostPopular);
+
+        // Lọc và lấy dữ liệu
+        this.top5movies_doanhthu = this.moviesData
+          .map(movie => ({
+            ...movie,
+            // Chuyển đổi doanh thu thành số, nếu không có thì gán 0
+            numericRevenue: parseFloat(
+              movie.boxOffice?.cumulativeWorldwideGross?.replace(/[\$,]/g, "") || 0
+            ),
+          }))
+        .sort((a, b) => b.numericRevenue - a.numericRevenue) // Sắp xếp theo doanh thu giảm dần
+        .slice(0, 5); // Lấy 5 phim đầu tiên
+
+
+        this.top15_30moviePopular = this.mostPopular.slice(0, 20);
+
+        this.top15_30movieRank = this.top50Movies
+          .sort((a, b) => a.rank - b.rank)
+          .slice(0, 20);
         
-            const movieMap = new Map(); // Bảng hash để gộp dữ liệu
-            try {
-            // Fetch dữ liệu từ các API
-            const [movies, names, reviews, top50, mostPopular] = await Promise.all(
-                Object.values(urls).map((url) => fetch(url).then((res) => res.json()))
-            );
-        
-            // Gộp dữ liệu từng API vào movieMap, chuẩn hóa các thuộc tính
-            movies.forEach((movie) => {
-                if (!movieMap.has(movie.id)) {
-                movieMap.set(movie.id, { ...movie });
-                }
-            });
-        
-            // Gộp dữ liệu từ bảng Names
-            names.forEach((name) => {
-                const movie = movieMap.get(name.movieId);
-                if (movie) {
-                movie.names = name.names || [];
-                }
-            });
-        
-            // Gộp dữ liệu từ bảng Reviews
-            reviews.forEach((review) => {
-                const movie = movieMap.get(review.movieId);
-                if (movie) {
-                movie.reviews = review.reviews || [];
-                }
-            });
-        
-            // Gộp dữ liệu từ bảng Top50Movies (rank)
-            top50.forEach((topMovie) => {
-                const movie = movieMap.get(topMovie.id);
-                if (movie) {
-                movie.rank = topMovie.rank;
-                }
-            });
-        
-            // Gộp dữ liệu từ bảng MostPopularMovies (popularity)
-            mostPopular.forEach((popularMovie) => {
-                const movie = movieMap.get(popularMovie.id);
-                if (movie) {
-                // Xử lý trường hợp 'popularity' và 'rankUpDown' có thể là các tên khác nhau
-                movie.popularity = popularMovie.rankUpDown || popularMovie.popularity; // Dùng trường 'rankUpDown' hoặc 'popularity'
-                }
-            });
-        
-            // Chuyển từ Map thành Array
-            this.moviesData = Array.from(movieMap.values());
-        
-            // **Lọc bỏ thuộc tính trùng và không cần thiết**
-            this.moviesData.forEach(movie => {
-                // Kiểm tra nếu các thuộc tính như 'grossRevenue' và 'imDbRatingCount' trùng nhau
-                // Nếu cùng giá trị thì chỉ giữ lại 1 trong 2
-                if (movie.grossRevenue && movie.grossRevenue === movie.imDbRatingCount) {
-                delete movie.imDbRatingCount; // Bỏ đi nếu giá trị trùng
-                }
-            });
-        
-            // **Lấy top 5 phim doanh thu cao nhất** (Dựa trên grossRevenue nếu có, hoặc ratingCount)
-            this.top5movies_doanhthu = this.moviesData
-                .filter((movie) => movie.grossRevenue)
-                .sort((a, b) => b.grossRevenue - a.grossRevenue) // Sắp xếp theo doanh thu giảm dần
-                .slice(0, 5);
-        
-            // **Lấy 20 phim phổ biến nhất** (Dựa vào 'popularity')
-            this.top20moviesPopular = this.moviesData
-                .filter((movie) => movie.popularity)
-                .sort((a, b) => b.popularity - a.popularity) // Sắp xếp theo độ phổ biến giảm dần
-                .slice(0, 20);
-        
-            // **Lấy 20 phim hạng cao nhất** (Dựa vào 'rank')
-            this.top20moviesRank = this.moviesData
-                .filter((movie) => movie.rank)
-                .sort((a, b) => a.rank - b.rank) // Sắp xếp theo thứ hạng tăng dần
-                .slice(0, 20);
-        
-            } catch (error) {
-            console.error("Error fetching or merging movies:", error);
-            }
-        },      
-        mounted() {
-        this.loadPage();
-        this.fetchMovies(); 
-        },
-    
-    template: `
-        <Header @toggle-dark-mode="toggleDarkMode" :isDarkMode="isDarkMode" />
-        <NavBar  />
-        <Main :top5movies_doanhthu="top5movies_doanhthu" :top20moviesPopular="top20moviesPopular" :top20moviesRank="top20moviesRank"/>
-        <Footer />
-    `,}
+        console.log(this.top5movies_doanhthu);
+
+      } catch (error) {
+        console.error("Lỗi khi fetch dữ liệu:", error);
+      }
+    }
+  },
+  mounted() {
+    this.loadPage();
+    this.fetchMovies();
+  },
+  template: `
+    <Header @toggle-dark-mode="toggleDarkMode" :isDarkMode="isDarkMode" />
+    <NavBar />
+    <Main 
+      :mostPopular="mostPopular"  
+      :top5movies_doanhthu="top5movies_doanhthu" 
+      :top15_30moviePopular="top15_30moviePopular" 
+      :top15_30movieRank="top15_30movieRank" 
+    />
+    <Footer />
+  `
 });
 
 app.mount("#app");
+
