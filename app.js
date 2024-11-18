@@ -409,6 +409,7 @@ const app = Vue.createApp({
         this.moviesData = response.items || [];
         this.top50Movies = response3.items || [];
         this.mostPopular = response4.items || [];
+        
 
         // Lọc và lấy dữ liệu
         this.top5movies_doanhthu = this.moviesData
@@ -418,19 +419,15 @@ const app = Vue.createApp({
               movie.boxOffice?.cumulativeWorldwideGross?.replace(/[\$,]/g, "") || 0
             ),
           }))
-        .sort((a, b) => a.numericRevenue - b.numericRevenue) // Sắp xếp theo doanh thu giảm dần
+        .sort((a, b) => b.numericRevenue - a.numericRevenue) // Sắp xếp theo doanh thu giảm dần
         .slice(0, 5); // Lấy 5 phim đầu tiên
-
-        this.top15_30moviePopular = this.mostPopular.slice(0, 20);
-
+        
+        //Sắp xếp theo mức độ phổ biến giảm dần
+        this.top15_30moviePopular = this.mostPopular.sort((a, b) => b.imDbRatingCount - a.imDbRatingCount).slice(0, 20);
+        //Sắp xếp rank tăng dần
         this.top15_30movieRank = this.top50Movies
           .sort((a, b) => a.rank - b.rank)
           .slice(0, 20);
-        
-        console.log("top5: ", this.top5movies_doanhthu);
-        console.log("popular: ", this.top15_30moviePopular);
-        console.log("rate: ", this.top15_30movieRank);
-
       } catch (error) {
         console.error("Lỗi khi fetch dữ liệu:", error);
       }
