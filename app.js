@@ -366,24 +366,27 @@ const app = Vue.createApp({
     return {
       isDarkMode: false,
 
-      moviesData: [],
-      mostPopular: [],
-      top50Movies: [],
+      moviesData: [],//danh sách các movie
+      mostPopular: [],// danh sách các popularMovie
+      top50Movies: [], // Danh sách top 50 Movie theo rating
 
       top5movies_doanhthu: [],
       top15_30moviePopular: [],
       top15_30movieRank: [],
 
-      searchQuery: '', 
-      searchResults: [], 
+      searchQuery: '',  // lấy dữ liệu từ input search
+      searchResults: [],  // kết quả search
     };
   },
   methods: {
+    //Sự kiện home
     goHome() {
         this.searchResults = [];
         this.searchQuery = ''; 
         this.$refs.main.resetState();
     },
+
+    //Sự kiện DarkMode
     toggleDarkMode(isDarkMode) {
       this.isDarkMode = isDarkMode;
       const body = document.body;
@@ -393,6 +396,8 @@ const app = Vue.createApp({
         body.classList.remove("dark-mode");
       }
     },
+
+    //Fetch dữ liệu
     async fetchMovies() {
       try {
         // Sử dụng dbProvider để gọi API
@@ -431,7 +436,7 @@ const app = Vue.createApp({
       }
     },
 
-        // Tìm kiếm 
+    // Tìm kiếm 
     searchMovies(query) {
       const lowerCaseQuery = query.toLowerCase(); // Sử dụng this.searchQuery
 
